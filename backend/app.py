@@ -1,30 +1,46 @@
-from flask import Flask, render_template
-from flask_socketio import SocketIO, emit
+from flask import Flask, jsonify
+import speech_recognition
+import pyttsx3
 
-import speech_recognition as sr
 
 app = Flask(__name__)
-socketio = SocketIO(app)
 
-recognizer = sr.Recognizer()
-
-@socketio.on('audio')
-def handle_audio(audio):
-    try:
-        audio_data = audio['data']
-        text = recognize_audio(audio_data)
-        emit('transcription', {'text': text})
-    except Exception as e:
-        emit('error', {'message': str(e)})
-
-def recognize_audio(audio_data):
-    with sr.AudioData(audio_data) as audio_file:
-        text = recognizer.recognize_google(audio_file)
-        return text
 
 @app.route('/')
-def index():
-    return render_template('index.html')
+def hello_world():
+    return 'Hello, World!'
+
+
+
+def speech_to_text():
+    sr = speech_recognition.Recognizer()
+    try:
+        # Use microphone as audio source
+        with speech_recognition.Microphone() as source:
+            print("Silence please...")
+            # Adjust for ambient noise
+            sr.adjust_for_ambient_noise(source, duration=2)
+            print("Speak now please... ")
+            # Listen to microphone input
+            audio = sr.listen(source, timeout=5)
+
+        # Use Google Speech Recognition to transcribe audio to text
+        text = sr.recognize_google(audio)
+        text = text.lower()
+
+        print("Did you say: " + text)
+        return text
+
+    except speech_recognition.UnknownValueError:
+        print("Sorry, I couldn't understand what you said.")
+        return None
+
+
+@app.route('/speech-to-text', methods=['GET'])
+def get_speech_to_text():
+    text = speech_to_text()
+    return text
+
 
 if __name__ == '__main__':
-    socketio.run(app)
+    app.run(debug=True)
