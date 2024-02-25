@@ -4,22 +4,28 @@ import pyttsx3
 
 sr = speech_recognition.Recognizer()
 
-
-with speech_recognition.Microphone() as source2:
-
-    print(" Silence please")
-
-    sr.adjust_for_ambient_noise(source2, duration = 2)
-
-    print(" Speak now please... ")
-
-    audio2 = sr.listen(source2,timeout=5)
-
+def speech_to_text():
     try:
-        textt = sr.recognize_google(audio2)
-        extt = textt.lower()
+        # Use microphone as audio source
+        with speech_recognition.Microphone() as source:
+            print("Silence please...")
+            # Adjust for ambient noise
+            sr.adjust_for_ambient_noise(source, duration=2)
+            print("Speak now please... ")
+            # Listen to microphone input
+            audio = sr.listen(source, timeout=5)
 
-        print(" Did you say :- " + textt)
+        # Use Google Speech Recognition to transcribe audio to text
+        text = sr.recognize_google(audio)
+        text = text.lower()
+
+        print("Did you say: " + text)
+        return text
 
     except speech_recognition.UnknownValueError:
         print("Sorry, I couldn't understand what you said.")
+        return None
+
+
+
+speech_to_text()
